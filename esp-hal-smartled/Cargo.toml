@@ -28,6 +28,9 @@ esp-backtrace = { version = "0.15.0", features = [
 esp-println = "0.13.0"
 smart-leds = "0.4.0"
 
+[patch.crates-io]
+esp-hal = { git = "https://github.com/esp-rs/esp-hal.git", package = "esp-hal" }
+
 [features]
 ## Implement `defmt::Format` on certain types.
 defmt = ["dep:defmt", "esp-hal/defmt"]

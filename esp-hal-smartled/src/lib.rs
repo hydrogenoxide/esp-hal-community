@@ -27,6 +27,7 @@ use core::{fmt::Debug, slice::IterMut};
 
 use esp_hal::{
     clock::Clocks,
+    gpio::Level,
     gpio::OutputPin,
     peripheral::Peripheral,
     rmt::{Error as RmtError, PulseCode, TxChannel, TxChannelConfig, TxChannelCreator},
@@ -99,16 +100,16 @@ where
         O: OutputPin + 'd,
         C: TxChannelCreator<'d, TX, O>,
     {
-        let config = TxChannelConfig {
-            clk_divider: 1,
-            idle_output_level: false,
-            carrier_modulation: false,
-            idle_output: true,
-
-            ..TxChannelConfig::default()
-        };
-
-        let channel = channel.configure(pin, config).unwrap();
+        let channel = channel
+            .configure(
+                pin,
+                TxChannelConfig::default()
+                    .with_clk_divider(1)
+                    .with_idle_output_level(Level::Low)
+                    .with_carrier_modulation(false)
+                    .with_idle_output(true),
+            )
+            .unwrap();
 
         // Assume the RMT peripheral is set up to use the APB clock
         let clocks = Clocks::get();
@@ -118,16 +119,16 @@ where
             channel: Some(channel),
             rmt_buffer,
             pulses: (
-                PulseCode::new (
-                    true,
+                PulseCode::new(
+                    Level::High,
                     ((SK68XX_T0H_NS * src_clock) / 1000) as u16,
-                    false,
+                    Level::Low,
                     ((SK68XX_T0L_NS * src_clock) / 1000) as u16,
                 ),
-                PulseCode::new (
-                    true,
+                PulseCode::new(
+                    Level::High,
                     ((SK68XX_T1H_NS * src_clock) / 1000) as u16,
-                    false,
+                    Level::Low,
                     ((SK68XX_T1L_NS * src_clock) / 1000) as u16,
                 ),
             ),
